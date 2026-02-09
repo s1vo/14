@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Мыша ❤️</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap");
@@ -43,7 +43,8 @@
         justify-content: center;
         padding: 24px;
         position: relative;
-        overflow: hidden;
+        overflow: auto;
+        min-height: 100vh;
       }
 
       body::before,
@@ -67,7 +68,9 @@
 
       .stage {
         width: min(900px, 96vw);
+        height: min(720px, 92vh);
         min-height: min(720px, 92vh);
+        max-height: min(720px, 92vh);
         background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(14px);
         border-radius: 18px;
@@ -75,8 +78,8 @@
         overflow: hidden;
         position: relative;
         z-index: 1;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
       }
 
       .header {
@@ -86,6 +89,8 @@
         justify-content: center;
         background: rgba(255, 255, 255, 0.9);
         border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        position: relative;
+        z-index: 2;
       }
 
       .meta {
@@ -126,21 +131,24 @@
         display: flex;
         flex-direction: column;
         gap: 14px;
-        min-height: 420px;
-        max-height: 68vh;
+        min-height: 0;
+        height: 100%;
+        max-height: none;
         overflow-y: auto;
         scroll-behavior: smooth;
-        flex: 1;
+        font-size: clamp(14.5px, 1.8vw, 16.5px);
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
       }
 
       .bubble {
         align-self: flex-start;
-        max-width: 70%;
+        max-width: 72%;
         background: var(--bubble);
         padding: 16px 18px;
         border-radius: var(--radius);
         box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
-        font-size: 16.5px;
+        font-size: 1em;
         line-height: 1.35;
         position: relative;
         opacity: 0;
@@ -189,6 +197,19 @@
         display: flex;
         gap: 12px;
         flex-wrap: wrap;
+        position: relative;
+        z-index: 2;
+        min-height: 78px;
+        align-items: center;
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        background: rgba(255, 255, 255, 0.9);
+      }
+
+      .actions:empty::before {
+        content: "";
+        display: block;
+        width: 100%;
+        height: 44px;
       }
 
       .btn {
@@ -297,39 +318,47 @@
 
       @media (max-width: 700px) {
         body {
-          padding: 12px;
+          padding: 0;
+          min-height: calc(var(--app-height, 1vh) * 100);
+          align-items: stretch;
+          justify-content: stretch;
+          overflow: hidden;
         }
         .stage {
-          width: 100%;
-          min-height: 100vh;
-          border-radius: 14px;
+          width: 100vw;
+          height: calc(var(--app-height, 1vh) * 100);
+          min-height: calc(var(--app-height, 1vh) * 100);
+          max-height: calc(var(--app-height, 1vh) * 100);
+          border-radius: 0;
         }
         .chat {
-          padding: 18px 18px 10px;
+          padding: 14px 14px 14px;
           max-height: none;
           min-height: 0;
+          height: 100%;
+          gap: 12px;
+          overflow-y: auto;
         }
         .bubble {
           max-width: 92%;
-          font-size: 15px;
         }
         .bubble.big {
-          font-size: 17px;
+          font-size: 1.05em;
         }
         .header {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 6px;
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 0;
+          padding: calc(10px + env(safe-area-inset-top)) 14px 10px;
         }
         .actions {
-          padding: 10px 18px 16px;
+          padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
           flex-direction: column;
           align-items: stretch;
-          position: sticky;
-          bottom: 0;
           background: rgba(255, 255, 255, 0.9);
           backdrop-filter: blur(10px);
-          border-top: 1px solid rgba(0, 0, 0, 0.06);
+          min-height: 86px;
         }
         .btn {
           width: 100%;
@@ -338,17 +367,33 @@
 
       @media (max-width: 420px) {
         .stage {
-          border-radius: 16px;
+          border-radius: 0;
         }
         .title {
           font-size: 14px;
         }
         .chat {
-          padding: 16px 16px 10px;
+          padding: 12px 12px 12px;
           max-height: none;
         }
         .btn {
           justify-content: center;
+        }
+        .bubble {
+          max-width: 94%;
+        }
+      }
+
+      @supports (height: 100dvh) {
+        @media (max-width: 700px) {
+          body {
+            min-height: 100dvh;
+          }
+          .stage {
+            height: 100dvh;
+            min-height: 100dvh;
+            max-height: 100dvh;
+          }
         }
       }
     </style>
@@ -421,6 +466,11 @@
       ];
 
       let currentIndex = 0;
+
+      function setAppHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty("--app-height", `${vh}px`);
+      }
 
       function playPing() {
         ping.volume = 0.12;
@@ -531,7 +581,10 @@
         actions.appendChild(askBtn);
       }
 
+      setAppHeight();
       showNextMessage();
+      window.addEventListener("resize", setAppHeight);
+      window.addEventListener("orientationchange", setAppHeight);
     </script>
   </body>
 </html>
